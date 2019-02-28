@@ -1,15 +1,11 @@
 import React from "react";
 import { connect } from "react-redux";
 import PropTypes from "prop-types";
-import EditRecipe from "../components/EditRecipe/EditRecipe";
-import { fetchRecipeDetail } from "./RecipeDetail/actions";
-import {
-  getError,
-  getRecipeDetail,
-  isRecipeLoading
-} from "./RecipeDetail/reducer";
+import RecipeDetail from "../../components/RecipeDetail/RecipeDetail";
+import { getError, getRecipeDetail, isRecipeLoading } from "./reducer";
+import { fetchRecipeDetail } from "./actions";
 
-class EditRecipePage extends React.Component {
+class RecipesDetailPage extends React.Component {
   componentDidMount() {
     // eslint-disable-next-line react/prop-types
     const { match, fetchRecipeDetail } = this.props;
@@ -33,7 +29,7 @@ class EditRecipePage extends React.Component {
     if (!data) {
       return null;
     }
-    return <EditRecipe recipe={data} />;
+    return <RecipeDetail recipe={data} />;
   }
 }
 
@@ -50,9 +46,9 @@ const mapDispatchToProps = {
 export default connect(
   mapStateToProps,
   mapDispatchToProps
-)(EditRecipePage);
+)(RecipesDetailPage);
 
-EditRecipePage.propTypes = {
+RecipesDetailPage.propTypes = {
   fetchRecipeDetail: PropTypes.func,
   data: PropTypes.object,
   problem: PropTypes.bool,

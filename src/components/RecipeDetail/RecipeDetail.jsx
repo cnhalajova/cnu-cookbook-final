@@ -1,42 +1,28 @@
 import React from "react";
 import PropTypes from "prop-types";
+import { connect } from "react-redux";
+
 import SideBar from "./SideBar";
 import Directions from "./Directions";
-import { Button, Alert } from "react-bootstrap";
-import api from "../../api/api";
+import { Button } from "react-bootstrap";
+import { deleteRecipe } from "../../pages/RecipeDetail/actions";
 import ServingsTimeInfo from "./ServingsTimeInfo";
 
-export default class RecipeDetail extends React.Component {
+class RecipeDetail extends React.Component {
   constructor(props) {
     super(props);
     const { servingCount } = this.props.recipe;
     this.state = {
-      show: false,
-      variant: "",
-      msg: "",
       servings: servingCount
     };
   }
 
   handleDeleteRecipe = () => {
-    const { _id } = this.props.recipe;
-    api.delete(`/recipes/${_id}`).then(({ problem }) => {
-      if (problem === null) {
-        // show success alert
-        this.setState({
-          show: true,
-          variant: "success",
-          msg: "Recept bol úspešne zmazaný."
-        });
-      } else {
-        // show error alert
-        this.setState({
-          show: true,
-          variant: "danger",
-          msg: "Recept sa nepodarilo zmazať."
-        });
-      }
-    });
+    const { deleteRecipe, recipe } = this.props;
+    const { _id } = recipe;
+    deleteRecipe(_id);
+
+    //TODO redirect
   };
 
   handleChange = event => {
@@ -54,15 +40,9 @@ export default class RecipeDetail extends React.Component {
       sideDish,
       slug
     } = recipe;
-    const { show, variant, msg, servings } = this.state;
+    const { servings } = this.state;
     return (
       <div>
-        {show && (
-          <Alert show={show} variant={variant} fade={false}>
-            {msg}
-          </Alert>
-        )}
-
         <div className="recipe-detail-wrapper">
           <h2 className="recipe-detail-title">{title}</h2>
           <div className="recipe-detail-button">
@@ -93,7 +73,16 @@ export default class RecipeDetail extends React.Component {
     );
   }
 }
+const mapDispatchToProps = {
+  deleteRecipe
+};
+
+export default connect(
+  undefined,
+  mapDispatchToProps
+)(RecipeDetail);
 
 RecipeDetail.propTypes = {
+  deleteRecipe: PropTypes.func,
   recipe: PropTypes.object.isRequired
 };

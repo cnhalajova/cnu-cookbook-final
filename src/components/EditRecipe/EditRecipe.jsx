@@ -1,12 +1,13 @@
 import React from "react";
+import { connect } from "react-redux";
 import EditTopbar from "./EditTopbar";
 import EditBasicInfo from "./EditBasicInfo";
 import EditIngredients from "./EditIngredients";
 import EditDirections from "./EditDirections";
 import PropTypes from "prop-types";
-import api from "../../api/api";
+import { postRecipe } from "../../pages/RecipeDetail/actions";
 import Directions from "../RecipeDetail/Directions";
-import { Alert, Form } from "react-bootstrap";
+import { Form } from "react-bootstrap";
 
 // a little function to help us with reordering the result
 const reorder = (list, startIndex, endIndex) => {
@@ -17,7 +18,7 @@ const reorder = (list, startIndex, endIndex) => {
   return result;
 };
 
-export default class EditRecipe extends React.Component {
+class EditRecipe extends React.Component {
   constructor(props) {
     super(props);
     const { recipe } = this.props;
@@ -43,10 +44,7 @@ export default class EditRecipe extends React.Component {
         amount: 0,
         amountUnit: "",
         isGroup: false
-      },
-      show: false,
-      variant: "",
-      msg: ""
+      }
     };
   }
   handleChange = e => {
@@ -155,43 +153,14 @@ export default class EditRecipe extends React.Component {
   };
 
   handleSave = e => {
-    const { _id } = this.props.recipe;
-    const {
-      title,
-      ingredients,
-      servingCount,
-      directions,
-      preparationTime,
-      sideDish
-    } = this.state;
-    const editedRecipe = {
-      title,
-      ingredients,
-      servingCount,
-      directions,
-      preparationTime,
-      sideDish
-    };
+    const { recipe, postRecipe } = this.props;
+    const { _id } = recipe;
 
     //make POST request for /api/recipes/:_id
     const id = _id === undefined ? "" : _id;
-    api.post(`/recipes/${id}`, editedRecipe).then(({ problem }) => {
-      if (problem === null) {
-        // show success alert
-        this.setState({
-          show: true,
-          variant: "success",
-          msg: "Recept bol úspešne uložený."
-        });
-      } else {
-        // show error alert
-        this.setState({
-          show: true,
-          variant: "danger",
-          msg: "Recept sa nepodarilo uložiť."
-        });
-      }
-    });
+    postRecipe(id, this.state);
+
+    //TODO redirect
   };
 
   render() {
@@ -202,16 +171,12 @@ export default class EditRecipe extends React.Component {
       directions,
       preparationTime,
       sideDish,
-      slug,
-      variant,
-      msg,
-      show
+      slug
     } = this.state;
     const originalTitle = this.props.recipe.title;
     const originalServingCount = this.props.recipe.servingCount;
     return (
       <div>
-        {show && <Alert variant={variant}>{msg}</Alert>}
         <EditTopbar
           title={originalTitle}
           slug={slug}
@@ -251,6 +216,16 @@ export default class EditRecipe extends React.Component {
   }
 }
 
+const mapDispatchToProps = {
+  postRecipe
+};
+
+export default connect(
+  undefined,
+  mapDispatchToProps
+)(EditRecipe);
+
 EditRecipe.propTypes = {
+  postRecipe: PropTypes.func,
   recipe: PropTypes.object
 };

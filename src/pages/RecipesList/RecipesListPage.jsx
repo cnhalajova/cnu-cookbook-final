@@ -1,34 +1,24 @@
 import React from "react";
-import api from "../api/api";
-import RecipesItem from "../components/RecipesItem/RecipesItem";
-import SearchBar from "../components/SearchBar";
+import { connect } from "react-redux";
+import PropTypes from "prop-types";
+import RecipesItem from "../../components/RecipesItem/RecipesItem";
+import SearchBar from "../../components/SearchBar";
 import { Form, Button, Row, Col } from "react-bootstrap";
+import { fetchRecipeList } from "./actions";
+import { getRecipeList, getError, isListLoading } from "./reducer";
 
-export default class RecipiesListPage extends React.Component {
+class RecipesListPage extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      isLoading: true,
-      data: null,
-      problem: null,
       searchValue: "",
       isLessThan30mins: false
     };
   }
 
   componentDidMount() {
-    this.setState({
-      isLoading: true,
-      data: null,
-      problem: null
-    });
-    api.get("/recipes").then(({ data, problem }) => {
-      this.setState({
-        isLoading: false,
-        data: data,
-        problem: problem
-      });
-    });
+    const { fetchRecipeList } = this.props;
+    fetchRecipeList();
   }
 
   handleChange = e => {
@@ -51,7 +41,9 @@ export default class RecipiesListPage extends React.Component {
   };
 
   render() {
-    const { data, problem, isLoading, searchValue } = this.state;
+    const { searchValue } = this.state;
+    const { data, problem, isLoading } = this.props;
+
     if (isLoading) {
       return <div>Loading ...</div>;
     }
@@ -91,3 +83,25 @@ export default class RecipiesListPage extends React.Component {
     );
   }
 }
+
+const mapStateToProps = state => ({
+  data: getRecipeList(state),
+  problem: getError(state),
+  isLoading: isListLoading(state)
+});
+
+const mapDispatchToProps = {
+  fetchRecipeList
+};
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(RecipesListPage);
+
+RecipesListPage.propTypes = {
+  fetchRecipeList: PropTypes.func,
+  data: PropTypes.array,
+  problem: PropTypes.bool,
+  isLoading: PropTypes.bool
+};
