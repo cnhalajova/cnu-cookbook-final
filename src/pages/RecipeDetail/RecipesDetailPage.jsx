@@ -2,7 +2,7 @@ import React from "react";
 import { connect } from "react-redux";
 import PropTypes from "prop-types";
 import RecipeDetail from "../../components/RecipeDetail/RecipeDetail";
-import { getError, getRecipeDetail, isRecipeLoading } from "./reducer";
+import { getFetchError, getRecipeDetail, isRecipeLoading } from "./reducer";
 import { fetchRecipeDetail } from "./actions";
 
 class RecipesDetailPage extends React.Component {
@@ -35,7 +35,7 @@ class RecipesDetailPage extends React.Component {
 
 const mapStateToProps = state => ({
   data: getRecipeDetail(state),
-  problem: getError(state),
+  problem: getFetchError(state),
   isLoading: isRecipeLoading(state)
 });
 

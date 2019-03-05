@@ -24,14 +24,14 @@ export default class EditIngredients extends React.Component {
               onChange={this.props.handleInputChange}
             />
             <Form.Control
-              id="unit"
+              id="amountUnit"
               placeholder="Jednotky"
               onChange={this.props.handleInputChange}
             />
           </InputGroup>
           <InputGroup className="recipe-detail-wrapper">
             <Form.Control
-              id="ingredientname"
+              id="name"
               placeholder="Názov ingrediencie"
               onChange={this.props.handleInputChange}
             />
@@ -44,7 +44,7 @@ export default class EditIngredients extends React.Component {
           <Form.Label>Pridať kategóriu</Form.Label>
           <InputGroup className="recipe-detail-wrapper">
             <Form.Control
-              id="categoryname"
+              id="category"
               placeholder="Nová kategória"
               onChange={this.props.handleInputChange}
             />

@@ -1,5 +1,7 @@
 import React from "react";
 import { connect } from "react-redux";
+import { withRouter } from "react-router-dom";
+
 import EditTopbar from "./EditTopbar";
 import EditBasicInfo from "./EditBasicInfo";
 import EditIngredients from "./EditIngredients";
@@ -8,6 +10,10 @@ import PropTypes from "prop-types";
 import { postRecipe } from "../../pages/RecipeDetail/actions";
 import Directions from "../RecipeDetail/Directions";
 import { Form } from "react-bootstrap";
+import {
+  getPostError,
+  isRecipePosting
+} from "../../pages/RecipeDetail/reducer";
 
 // a little function to help us with reordering the result
 const reorder = (list, startIndex, endIndex) => {
@@ -21,117 +27,67 @@ const reorder = (list, startIndex, endIndex) => {
 class EditRecipe extends React.Component {
   constructor(props) {
     super(props);
-    const { recipe } = this.props;
-    const {
-      title,
-      ingredients,
-      servingCount,
-      directions,
-      preparationTime,
-      sideDish,
-      slug
-    } = recipe;
+
+    const { recipe } = props;
+    const originalRecipe = Object.assign({}, this.props.recipe);
+    const originalTitle = originalRecipe.title;
+    const originalServingCount = originalRecipe.servingCount;
     this.state = {
-      title,
-      ingredients,
-      servingCount,
-      directions,
-      preparationTime,
-      sideDish,
-      slug,
+      newRecipe: recipe,
       newIngredient: {
         name: "",
         amount: 0,
         amountUnit: "",
         isGroup: false
-      }
+      },
+      originalTitle,
+      originalServingCount
     };
   }
-  handleChange = e => {
-    const { id, value } = e.target;
-    switch (id) {
-      case "title":
-        this.setState({ title: value });
-        break;
-      case "servingCount":
-        this.setState({ servingCount: value });
-        break;
-      case "directions":
-        this.setState({ directions: value });
-        break;
-      case "preparationTime":
-        this.setState({ preparationTime: value });
-        break;
-      case "sideDish":
-        this.setState({ sideDish: value });
-        break;
-      default:
-        break;
-    }
+
+  handleChange = event => {
+    const { id, value } = event.target;
+    const { newRecipe } = this.state;
+    newRecipe[id] = value;
+    this.setState({ newRecipe });
   };
 
-  handleIngredientsChange = e => {
-    e.preventDefault();
+  handleIngredientsChange = event => {
+    event.preventDefault();
 
     const { ingredients, newIngredient } = this.state;
-    let newIngredients = ingredients;
-    newIngredients.push(newIngredient);
-    this.setState({ ingredients: newIngredients, newIngredient: {} });
+
+    this.setState({
+      ingredients: [...ingredients, newIngredient],
+      newIngredient: {}
+    });
   };
 
-  handleInputChange = e => {
-    const { name, amount, amountUnit } = this.state.newIngredient;
-    const { id, value } = e.target;
-    switch (id) {
-      case "amount":
-        this.setState({
-          newIngredient: {
-            amount: value,
-            amountUnit: amountUnit,
-            name: name,
-            isGroup: false
-          }
-        });
-        break;
-      case "unit":
-        this.setState({
-          newIngredient: {
-            amount: amount,
-            amountUnit: value,
-            name: name,
-            isGroup: false
-          }
-        });
-        break;
-      case "ingredientname":
-        this.setState({
-          newIngredient: {
-            amount: amount,
-            amountUnit: amountUnit,
-            name: value,
-            isGroup: false
-          }
-        });
-        break;
-      case "categoryname":
-        this.setState({
-          newIngredient: {
-            name: value,
-            isGroup: true
-          }
-        });
-        break;
-      default:
-        break;
+  handleInputChange = event => {
+    const { newIngredient } = this.state.newIngredient;
+    const { id, value } = event.target;
+    newIngredient[id] = value;
+    if (id === "category") {
+      this.setState({
+        newIngredient: {
+          name: value,
+          isGroup: true
+        }
+      });
+      return;
     }
+    this.setState({ newIngredient });
   };
 
-  handleDelete = e => {
-    const { id } = e.target;
+  handleDelete = event => {
+    const { id } = event.target;
     const { ingredients } = this.state;
-    let reorderedList = ingredients;
-    reorderedList.splice(id, 1);
-    this.setState({ ingredients: reorderedList });
+
+    const updatedIngredientList = ingredients.filter(
+      ingredient => ingredient.id !== id
+    );
+
+    this.setState({ ingredients: updatedIngredientList });
   };
 
   onDragEnd = result => {
@@ -152,18 +108,24 @@ class EditRecipe extends React.Component {
     });
   };
 
-  handleSave = e => {
+  handleSave = event => {
     const { recipe, postRecipe } = this.props;
+    const { newRecipe } = this.state;
     const { _id } = recipe;
 
     //make POST request for /api/recipes/:_id
-    const id = _id === undefined ? "" : _id;
-    postRecipe(id, this.state);
-
-    //TODO redirect
+    let id = _id === undefined ? "" : _id;
+    postRecipe(id, newRecipe).then(response => {
+      //redirect
+      // eslint-disable-next-line react/prop-types
+      this.props.history.push({
+        pathname: `/recipes/${response.payload.slug}`
+      });
+    });
   };
 
   render() {
+    const { originalTitle, originalServingCount, newRecipe } = this.state;
     const {
       title,
       ingredients,
@@ -172,9 +134,8 @@ class EditRecipe extends React.Component {
       preparationTime,
       sideDish,
       slug
-    } = this.state;
-    const originalTitle = this.props.recipe.title;
-    const originalServingCount = this.props.recipe.servingCount;
+    } = newRecipe;
+
     return (
       <div>
         <EditTopbar
@@ -216,16 +177,24 @@ class EditRecipe extends React.Component {
   }
 }
 
+const mapStateToProps = state => ({
+  error: getPostError(state),
+  isPosting: isRecipePosting(state)
+});
 const mapDispatchToProps = {
   postRecipe
 };
 
-export default connect(
-  undefined,
-  mapDispatchToProps
-)(EditRecipe);
+export default withRouter(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps
+  )(EditRecipe)
+);
 
 EditRecipe.propTypes = {
   postRecipe: PropTypes.func,
-  recipe: PropTypes.object
+  recipe: PropTypes.object,
+  isPosting: PropTypes.bool,
+  error: PropTypes.object
 };

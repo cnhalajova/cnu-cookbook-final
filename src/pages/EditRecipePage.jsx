@@ -2,9 +2,9 @@ import React from "react";
 import { connect } from "react-redux";
 import PropTypes from "prop-types";
 import EditRecipe from "../components/EditRecipe/EditRecipe";
-import { fetchRecipeDetail } from "./RecipeDetail/actions";
+import { fetchRecipeDetail, resetRecipeDetail } from "./RecipeDetail/actions";
 import {
-  getError,
+  getFetchError,
   getRecipeDetail,
   isRecipeLoading
 } from "./RecipeDetail/reducer";
@@ -12,11 +12,16 @@ import {
 class EditRecipePage extends React.Component {
   componentDidMount() {
     // eslint-disable-next-line react/prop-types
-    const { match, fetchRecipeDetail } = this.props;
-    const { params } = match;
+    const { match, fetchRecipeDetail, resetRecipeDetail } = this.props;
+    const { params, path } = match;
     const { slug } = params;
 
-    fetchRecipeDetail(slug);
+    if (slug !== undefined) {
+      fetchRecipeDetail(slug);
+    }
+    if (path === "/new-recipe") {
+      resetRecipeDetail();
+    }
   }
 
   render() {
@@ -39,12 +44,13 @@ class EditRecipePage extends React.Component {
 
 const mapStateToProps = state => ({
   data: getRecipeDetail(state),
-  problem: getError(state),
+  problem: getFetchError(state),
   isLoading: isRecipeLoading(state)
 });
 
 const mapDispatchToProps = {
-  fetchRecipeDetail
+  fetchRecipeDetail,
+  resetRecipeDetail
 };
 
 export default connect(
@@ -54,6 +60,7 @@ export default connect(
 
 EditRecipePage.propTypes = {
   fetchRecipeDetail: PropTypes.func,
+  resetRecipeDetail: PropTypes.func,
   data: PropTypes.object,
   problem: PropTypes.bool,
   isLoading: PropTypes.bool

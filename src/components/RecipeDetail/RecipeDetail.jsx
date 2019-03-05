@@ -1,6 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
+import { withRouter } from "react-router-dom";
 
 import SideBar from "./SideBar";
 import Directions from "./Directions";
@@ -22,7 +23,11 @@ class RecipeDetail extends React.Component {
     const { _id } = recipe;
     deleteRecipe(_id);
 
-    //TODO redirect
+    //redirect
+    // eslint-disable-next-line react/prop-types
+    this.props.history.push({
+      pathname: `/recipes`
+    });
   };
 
   handleChange = event => {
@@ -46,7 +51,7 @@ class RecipeDetail extends React.Component {
         <div className="recipe-detail-wrapper">
           <h2 className="recipe-detail-title">{title}</h2>
           <div className="recipe-detail-button">
-            <Button variant="info" href={`/recipes/${slug}/uprav`}>
+            <Button variant="info" href={`/recipes/${slug}/edit`}>
               Upraviť
             </Button>
             <Button variant="danger" onClick={this.handleDeleteRecipe}>
@@ -77,10 +82,12 @@ const mapDispatchToProps = {
   deleteRecipe
 };
 
-export default connect(
-  undefined,
-  mapDispatchToProps
-)(RecipeDetail);
+export default withRouter(
+  connect(
+    undefined,
+    mapDispatchToProps
+  )(RecipeDetail)
+);
 
 RecipeDetail.propTypes = {
   deleteRecipe: PropTypes.func,
